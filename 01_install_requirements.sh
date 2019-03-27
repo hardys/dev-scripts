@@ -95,10 +95,10 @@ fi
 
 # Install terraform
 if [ ! -f /usr/local/bin/terraform ]; then
-    curl -O https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip
-    unzip terraform_0.11.11_linux_amd64.zip
+    curl -O https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
+    unzip terraform_0.11.13_linux_amd64.zip
     sudo install terraform /usr/local/bin
-    rm -f terraform_0.11.11_linux_amd64.zip terraform
+    rm -f terraform_0.11.13_linux_amd64.zip terraform
 fi
 
 # Generate user ssh key
