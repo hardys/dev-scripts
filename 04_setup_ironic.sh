@@ -34,33 +34,16 @@ if  sudo podman pod exists ironic-pod ; then
     sudo podman pod rm ironic-pod -f
 fi
 
-# set password for mariadb
-mariadb_password=$(echo $(date;hostname)|sha256sum |cut -c-20)
-
 # Create pod
 sudo podman pod create -n ironic-pod 
 
-# Start dnsmasq, http, mariadb, and ironic containers using same image
-sudo podman run -d --net host --privileged --name dnsmasq  --pod ironic-pod \
-     -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/rundnsmasq ${IRONIC_IMAGE}
-
+# We start only the httpd and *downloader containers so that we can provide
+# cached images to the bootstrap VM
 sudo podman run -d --net host --privileged --name httpd --pod ironic-pod \
      -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
 
-sudo podman run -d --net host --privileged --name mariadb --pod ironic-pod \
-     -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runmariadb \
-     --env MARIADB_PASSWORD=$mariadb_password ${IRONIC_IMAGE}
-
-sudo podman run -d --net host --privileged --name ironic --pod ironic-pod \
-     --env MARIADB_PASSWORD=$mariadb_password \
-     -v $IRONIC_DATA_DIR:/shared ${IRONIC_IMAGE}
-
-sudo podman run -d --net host --privileged --name ipa-downloader --pod ironic-pod \
+sudo podman run -d --name ipa-downloader --pod ironic-pod \
      -v $IRONIC_DATA_DIR:/shared ${IPA_DOWNLOADER_IMAGE} /usr/local/bin/get-resource.sh
 
-sudo podman run -d --net host --privileged --name coreos-downloader --pod ironic-pod \
+sudo podman run -d --name coreos-downloader --pod ironic-pod \
      -v $IRONIC_DATA_DIR:/shared ${COREOS_DOWNLOADER_IMAGE} /usr/local/bin/get-resource.sh $RHCOS_IMAGE_URL
-
-# Start Ironic Inspector 
-sudo podman run -d --net host --privileged --name ironic-inspector \
-     --pod ironic-pod -v $IRONIC_DATA_DIR:/shared "${IRONIC_INSPECTOR_IMAGE}"

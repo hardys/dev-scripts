@@ -54,8 +54,8 @@ export RHCOS_IMAGE_FILENAME_LATEST="rhcos-ootpa-latest.qcow2"
 # Ironic vars
 export IRONIC_IMAGE=${IRONIC_IMAGE:-"quay.io/metal3-io/ironic:master"}
 export IRONIC_INSPECTOR_IMAGE=${IRONIC_INSPECTOR_IMAGE:-"quay.io/metal3-io/ironic-inspector:master"}
-export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"quay.io/higginsd/resource-downloader-ipa:master"}
-export COREOS_DOWNLOADER_IMAGE=${COREOS_DOWNLOADER_IMAGE:-"quay.io/higginsd/resource-downloader-coreos:master"}
+export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"quay.io/metal3-io/ironic-ipa-downloader:master"}
+export COREOS_DOWNLOADER_IMAGE=${COREOS_DOWNLOADER_IMAGE:-"quay.io/openshift-metal3/rhcos-downloader:master"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 
 export KUBECONFIG="${SCRIPTDIR}/ocp/auth/kubeconfig"
