@@ -124,6 +124,10 @@ export SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_IMAGE:-"quay.io/metal3-io/sushy-tools"}
 
 export KUBECONFIG="${SCRIPTDIR}/ocp/auth/kubeconfig"
 
+# FIXME(shardy) Workaround for lack of https://github.com/cri-o/cri-o/pull/2944
+# Remove when this makes it into the installer RHCOS image
+export IGNITION_EXTRA="${SCRIPTDIR}/ignition/disable_enp1s0.json"
+
 # Use a cloudy ssh that doesn't do Host Key checking
 export SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
 

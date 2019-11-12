@@ -1,0 +1,17 @@
+{
+  "ignition": {
+    "version": "2.3.0"
+  },
+  "storage": {
+    "files": [
+      {
+        "path": "/etc/NetworkManager/conf.d/98-disable-enp1s0.conf",
+        "filesystem": "root",
+        "mode": 436,
+        "contents": {
+          "source": "data:,[main]%0Ano-auto-default=enp1s0%0A"
+        }
+      }
+    ]
+  }
+}
