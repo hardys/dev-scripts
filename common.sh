@@ -40,7 +40,6 @@ source $CONFIG
 export MIRROR_IMAGES=${MIRROR_IMAGES:-}
 
 # variables for local registry configuration
-export LOCAL_REGISTRY_ADDRESS=${LOCAL_REGISTRY_ADDRESS:-"192.168.111.1"}
 export LOCAL_REGISTRY_PORT=${LOCAL_REGISTRY_PORT:-"5000"}
 export REGISTRY_USER=${REGISTRY_USER:-ocp-user}
 export REGISTRY_PASS=${REGISTRY_PASS:-ocp-pass}
@@ -89,7 +88,7 @@ fi
 
 if [ -n "$MIRROR_IMAGES" ]; then
     # We're going to be using a locally modified release image
-    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE="${LOCAL_REGISTRY_ADDRESS}:${LOCAL_REGISTRY_PORT}/localimages/local-release-image:latest"
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE="${LOCAL_REGISTRY_DNS_NAME}:${LOCAL_REGISTRY_PORT}/localimages/local-release-image:latest"
 fi
 
 # Set variables
