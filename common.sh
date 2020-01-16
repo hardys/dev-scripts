@@ -43,6 +43,11 @@ export SSH_PUB_KEY="${SSH_PUB_KEY:-$(cat $HOME/.ssh/id_rsa.pub)}"
 export NETWORK_TYPE=${NETWORK_TYPE:-"OpenShiftSDN"}
 export EXTERNAL_SUBNET=${EXTERNAL_SUBNET:-"192.168.111.0/24"}
 export MIRROR_IP=${MIRROR_IP:-"172.22.0.1"}
+
+if [[ "${MIRROR_IP}" =~ .*:.* ]]; then
+    export MIRROR_IP="[${MIRROR_IP}]"
+fi
+
 export DNS_VIP=${DNS_VIP:-"192.168.111.2"}
 export LOCAL_REGISTRY_DNS_NAME=${LOCAL_REGISTRY_DNS_NAME:-"virthost.${CLUSTER_NAME}.${BASE_DOMAIN}"}
 
