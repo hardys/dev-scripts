@@ -135,7 +135,7 @@ if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
     fi
 fi
 
-if [ "$MANAGE_INT_BRIDGE" == "y" ]; then
+if [ "$MANAGE_INT_BRIDGE" == "y" ] ; then
     # Create the baremetal bridge
     if [ ! -e /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME} ] ; then
         echo -e "DEVICE=${BAREMETAL_NETWORK_NAME}\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no${ZONE}" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME}
@@ -154,7 +154,7 @@ if [ "$MANAGE_INT_BRIDGE" == "y" ]; then
                grep -q BOOTPROTO /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME} || (echo -e "\nBOOTPROTO=dhcp\n" | sudo tee -a /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME})
            fi
        fi
-        sudo systemctl restart network
+       sudo systemctl restart network
     fi
 fi
 
@@ -162,6 +162,47 @@ fi
 # files, it is required to enable the network service
 if [ "$MANAGE_INT_BRIDGE" == "y" ] || [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
   sudo systemctl enable network
+fi
+
+# VLAN interface in the provisioning bridge
+if [ ! -z "${PROVISIONING_VLAN}" ] ; then
+    VLAN_INT=${PROVISIONING_NETWORK_NAME}.${PROVISIONING_VLAN}
+    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.conf /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
+    sudo sed -i "s/${BAREMETAL_NETWORK_NAME}/${VLAN_INT}/" /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
+    sudo sed -i "/^bind-dynamic/d" /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
+    sudo sed -i 's#/var/lib/libvirt/dnsmasq/#/etc/NetworkManager/dnsmasq-shared.d/#' /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
+    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.hostsfile /etc/NetworkManager/dnsmasq-shared.d/${VLAN_INT}.hostsfile
+    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.addnhosts /etc/NetworkManager/dnsmasq-shared.d/${VLAN_INT}.addnhosts
+
+    # Remove the baremetal libvirt network
+    sudo virsh net-destroy ${BAREMETAL_NETWORK_NAME}
+    sudo virsh net-undefine ${BAREMETAL_NETWORK_NAME}
+
+    # Remove the baremetal bridge
+    sudo ifdown ${BAREMETAL_NETWORK_NAME} || true
+    if [ -e /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME} ] ; then
+        sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME}
+    fi
+
+    # Remove the baremetal bridge definitions in the VMs
+    DOMLIST=$(sudo virsh list --all | grep ${CLUSTER_NAME} | awk '{print $2}')
+    for VM in ${DOMLIST}; do
+        EXT_BR_MAC=$(sudo virsh domiflist ${VM} | grep ${BAREMETAL_NETWORK_NAME} | awk '{print $5}')
+        sudo virsh detach-interface $VM bridge --mac ${EXT_BR_MAC} --config
+    done
+
+    # Create the provisioning vlan interface
+    VLAN_FILE=/etc/sysconfig/network-scripts/ifcfg-${VLAN_INT}
+    if [ ! -e ${VLAN_FILE} ] ; then
+        if [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
+            echo -e "DEVICE=${VLAN_INT}\nVLAN=yes\nNM_CONTROLLED=no\nONBOOT=yes\nIPV6_AUTOCONF=no\nIPV6INIT=yes\nIPV6ADDR=$(nth_ip ${EXTERNAL_SUBNET_V6} 1)" | sudo dd of=${VLAN_FILE}
+        else
+            echo -e "DEVICE=${VLAN_INT}\nVLAN=yes\nNM_CONTROLLED=no\nONBOOT=yes\nIPADDR=$(nth_ip ${EXTERNAL_SUBNET_V4} 1)\nPREFIX=24" | sudo dd of=${VLAN_FILE}
+       fi
+    fi
+    sudo systemctl restart network
+    # Restart NetworkManager to start dnsmasq
+    sudo systemctl restart NetworkManager
 fi
 
 # restart the libvirt network so it applies an ip to the bridge
@@ -188,8 +229,11 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -b -vvv ${VM_SETUP_PATH}/firewall.yml
 
 # FIXME(stbenjam): ansbile firewalld module doesn't seem to be doing the right thing
-sudo firewall-cmd --zone=libvirt --change-interface=provisioning
-sudo firewall-cmd --zone=libvirt --change-interface=baremetal
+sudo firewall-cmd --zone=libvirt --change-interface=$PROVISIONING_NETWORK_NAME
+sudo firewall-cmd --zone=libvirt --change-interface=$BAREMETAL_NETWORK_NAME
+if [ ! -z "${PROVISIONING_VLAN}" ] ; then
+    sudo firewall-cmd --zone=libvirt --change-interface=${PROVISIONING_NETWORK_NAME}.${PROVISIONING_VLAN}
+fi
 
 # Need to route traffic from the provisioning host.
 if [ "$EXT_IF" ]; then

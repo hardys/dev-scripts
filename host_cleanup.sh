@@ -46,6 +46,14 @@ if [ "$MANAGE_BR_BRIDGE" == "y" ]; then
     sudo ip link delete ${BAREMETAL_NETWORK_NAME} || true
     sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME}
 fi
+if [ -n "$PROVISIONING_VLAN" ]; then
+    VLAN_INT=${PROVISIONING_NETWORK_NAME}.${PROVISIONING_VLAN}
+    sudo ifdown ${VLAN_INT} || true
+    sudo ip link delete ${VLAN_INT} || true
+    sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${VLAN_INT}
+    sudo rm -f /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf /etc/NetworkManager/dnsmasq-shared.d/${VLAN_INT}.*host*
+    sudo systemctl restart NetworkManager
+fi
 
 # Drop all ebtables rules
 sudo ebtables --flush
