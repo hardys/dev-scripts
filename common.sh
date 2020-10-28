@@ -284,17 +284,16 @@ fi
 # Defaults the variable to enable testing a custom machine-api-operator image
 export TEST_CUSTOM_MAO=${TEST_CUSTOM_MAO:-false}
 
-# Add support for VLAN on top of Provisioning interface. Enabled only when a number 
-# between 2 and 4094 is specified
-export PROVISIONING_VLAN=${PROVISIONING_VLAN:-}
-if [[ -n "${PROVISIONING_VLAN}" ]] ; then
-  if ! [[ "${PROVISIONING_VLAN}" =~ ^[0-9]+$ ]] ; then
-     error "PROVISIONING_VLAN value must be an integer."
+# Add support for VLAN on top of Provisioning interface.
+# Enabled only when a number between 2 and 4094 is specified
+export BAREMETAL_NETWORK_VLAN=${BAREMETAL_NETWORK_VLAN:-}
+if [[ -n "${BAREMETAL_NETWORK_VLAN}" ]] ; then
+  if ! [[ "${BAREMETAL_NETWORK_VLAN}" =~ ^[0-9]+$ ]] ; then
+     error "BAREMETAL_NETWORK_VLAN value must be an integer."
      exit 1
   fi
-  if [[ "${PROVISIONING_VLAN}" -lt 2 ]] || [[ "${PROVISIONING_VLAN}" -gt 4094 ]] ; then
-     echo "Wrong PROVISIONING_VLAN value: "${PROVISIONING_VLAN}" specified. Specify a VLAN value between 2 and 4094"
+  if [[ "${BAREMETAL_NETWORK_VLAN}" -lt 2 ]] || [[ "${BAREMETAL_NETWORK_VLAN}" -gt 4094 ]] ; then
+     echo "Wrong BAREMETAL_NETWORK_VLAN value: "${BAREMETAL_NETWORK_VLAN}" specified. Specify a VLAN value between 2 and 4094"
      exit 1
    fi
 fi
-

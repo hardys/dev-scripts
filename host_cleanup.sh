@@ -46,8 +46,8 @@ if [ "$MANAGE_BR_BRIDGE" == "y" ]; then
     sudo ip link delete ${BAREMETAL_NETWORK_NAME} || true
     sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME}
 fi
-if [ -n "$PROVISIONING_VLAN" ]; then
-    VLAN_INT=${PROVISIONING_NETWORK_NAME}.${PROVISIONING_VLAN}
+if [ -n "$BAREMETAL_NETWORK_VLAN" ]; then
+    VLAN_INT=${PROVISIONING_NETWORK_NAME}.${BAREMETAL_NETWORK_VLAN}
     sudo ifdown ${VLAN_INT} || true
     sudo ip link delete ${VLAN_INT} || true
     sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${VLAN_INT}

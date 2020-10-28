@@ -164,9 +164,12 @@ if [ "$MANAGE_INT_BRIDGE" == "y" ] || [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
   sudo systemctl enable network
 fi
 
-# VLAN interface in the provisioning bridge
-if [ ! -z "${PROVISIONING_VLAN}" ] ; then
-    VLAN_INT=${PROVISIONING_NETWORK_NAME}.${PROVISIONING_VLAN}
+# Is the baremetal network a vlan overlaid on the provisioning network
+# In this case we remove the baremetal libvirt network and configure
+# a vlan interface so tagged traffic can use the same "physical" network
+# as the provisioning traffic (which remains untagged).
+if [ ! -z "${BAREMETAL_NETWORK_VLAN}" ] ; then
+    VLAN_INT=${PROVISIONING_NETWORK_NAME}.${BAREMETAL_NETWORK_VLAN}
     sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.conf /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
     sudo sed -i "s/${BAREMETAL_NETWORK_NAME}/${VLAN_INT}/" /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
     sudo sed -i "/^bind-dynamic/d" /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
@@ -231,8 +234,8 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
 # FIXME(stbenjam): ansbile firewalld module doesn't seem to be doing the right thing
 sudo firewall-cmd --zone=libvirt --change-interface=$PROVISIONING_NETWORK_NAME
 sudo firewall-cmd --zone=libvirt --change-interface=$BAREMETAL_NETWORK_NAME
-if [ ! -z "${PROVISIONING_VLAN}" ] ; then
-    sudo firewall-cmd --zone=libvirt --change-interface=${PROVISIONING_NETWORK_NAME}.${PROVISIONING_VLAN}
+if [ ! -z "${BAREMETAL_NETWORK_VLAN}" ] ; then
+    sudo firewall-cmd --zone=libvirt --change-interface=${PROVISIONING_NETWORK_NAME}.${BAREMETAL_NETWORK_VLAN}
 fi
 
 # Need to route traffic from the provisioning host.
