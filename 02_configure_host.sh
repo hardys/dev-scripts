@@ -135,7 +135,7 @@ if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
     fi
 fi
 
-if [ "$MANAGE_INT_BRIDGE" == "y" ] ; then
+if [ "$MANAGE_INT_BRIDGE" == "y" ]; then
     # Create the baremetal bridge
     if [ ! -e /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME} ] ; then
         echo -e "DEVICE=${BAREMETAL_NETWORK_NAME}\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no${ZONE}" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME}
@@ -154,7 +154,7 @@ if [ "$MANAGE_INT_BRIDGE" == "y" ] ; then
                grep -q BOOTPROTO /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME} || (echo -e "\nBOOTPROTO=dhcp\n" | sudo tee -a /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME})
            fi
        fi
-       sudo systemctl restart network
+        sudo systemctl restart network
     fi
 fi
 
