@@ -169,13 +169,12 @@ fi
 # a vlan interface so tagged traffic can use the same "physical" network
 # as the provisioning traffic (which remains untagged).
 if [ ! -z "${BAREMETAL_NETWORK_VLAN}" ] ; then
-    VLAN_INT=${PROVISIONING_NETWORK_NAME}.${BAREMETAL_NETWORK_VLAN}
-    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.conf /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
-    sudo sed -i "s/${BAREMETAL_NETWORK_NAME}/${VLAN_INT}/" /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
-    sudo sed -i "/^bind-dynamic/d" /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
-    sudo sed -i 's#/var/lib/libvirt/dnsmasq/#/etc/NetworkManager/dnsmasq-shared.d/#' /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf
-    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.hostsfile /etc/NetworkManager/dnsmasq-shared.d/${VLAN_INT}.hostsfile
-    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.addnhosts /etc/NetworkManager/dnsmasq-shared.d/${VLAN_INT}.addnhosts
+    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.conf /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.conf
+    sudo sed -i "s/${BAREMETAL_NETWORK_NAME}/${BAREMETAL_NETWORK_VLAN_INTERFACE}/" /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.conf
+    sudo sed -i "/^bind-dynamic/d" /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.conf
+    sudo sed -i 's#/var/lib/libvirt/dnsmasq/#/etc/NetworkManager/dnsmasq-shared.d/#' /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.conf
+    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.hostsfile /etc/NetworkManager/dnsmasq-shared.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.hostsfile
+    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.addnhosts /etc/NetworkManager/dnsmasq-shared.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.addnhosts
 
     # Remove the baremetal libvirt network
     sudo virsh net-destroy ${BAREMETAL_NETWORK_NAME}
@@ -195,12 +194,12 @@ if [ ! -z "${BAREMETAL_NETWORK_VLAN}" ] ; then
     done
 
     # Create the provisioning vlan interface
-    VLAN_FILE=/etc/sysconfig/network-scripts/ifcfg-${VLAN_INT}
+    VLAN_FILE=/etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_VLAN_INTERFACE}
     if [ ! -e ${VLAN_FILE} ] ; then
         if [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
-            echo -e "DEVICE=${VLAN_INT}\nVLAN=yes\nNM_CONTROLLED=no\nONBOOT=yes\nIPV6_AUTOCONF=no\nIPV6INIT=yes\nIPV6ADDR=$(nth_ip ${EXTERNAL_SUBNET_V6} 1)" | sudo dd of=${VLAN_FILE}
+            echo -e "DEVICE=${BAREMETAL_NETWORK_VLAN_INTERFACE}\nVLAN=yes\nNM_CONTROLLED=no\nONBOOT=yes\nIPV6_AUTOCONF=no\nIPV6INIT=yes\nIPV6ADDR=$(nth_ip ${EXTERNAL_SUBNET_V6} 1)" | sudo dd of=${VLAN_FILE}
         else
-            echo -e "DEVICE=${VLAN_INT}\nVLAN=yes\nNM_CONTROLLED=no\nONBOOT=yes\nIPADDR=$(nth_ip ${EXTERNAL_SUBNET_V4} 1)\nPREFIX=24" | sudo dd of=${VLAN_FILE}
+            echo -e "DEVICE=${BAREMETAL_NETWORK_VLAN_INTERFACE}\nVLAN=yes\nNM_CONTROLLED=no\nONBOOT=yes\nIPADDR=$(nth_ip ${EXTERNAL_SUBNET_V4} 1)\nPREFIX=24" | sudo dd of=${VLAN_FILE}
        fi
     fi
     sudo systemctl restart network

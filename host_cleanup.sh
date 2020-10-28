@@ -47,11 +47,10 @@ if [ "$MANAGE_BR_BRIDGE" == "y" ]; then
     sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME}
 fi
 if [ -n "$BAREMETAL_NETWORK_VLAN" ]; then
-    VLAN_INT=${PROVISIONING_NETWORK_NAME}.${BAREMETAL_NETWORK_VLAN}
-    sudo ifdown ${VLAN_INT} || true
-    sudo ip link delete ${VLAN_INT} || true
-    sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${VLAN_INT}
-    sudo rm -f /etc/NetworkManager/dnsmasq.d/${VLAN_INT}.conf /etc/NetworkManager/dnsmasq-shared.d/${VLAN_INT}.*host*
+    sudo ifdown ${BAREMETAL_NETWORK_VLAN_INTERFACE} || true
+    sudo ip link delete ${BAREMETAL_NETWORK_VLAN_INTERFACE} || true
+    sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_VLAN_INTERFACE}
+    sudo rm -f /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.conf /etc/NetworkManager/dnsmasq-shared.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.*host*
     sudo systemctl restart NetworkManager
 fi
 

@@ -295,5 +295,6 @@ if [[ -n "${BAREMETAL_NETWORK_VLAN}" ]] ; then
   if [[ "${BAREMETAL_NETWORK_VLAN}" -lt 2 ]] || [[ "${BAREMETAL_NETWORK_VLAN}" -gt 4094 ]] ; then
      echo "Wrong BAREMETAL_NETWORK_VLAN value: "${BAREMETAL_NETWORK_VLAN}" specified. Specify a VLAN value between 2 and 4094"
      exit 1
-   fi
+  fi
+  BAREMETAL_NETWORK_VLAN_INTERFACE=${PROVISIONING_NETWORK_NAME}.${BAREMETAL_NETWORK_VLAN}
 fi
