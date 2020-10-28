@@ -186,11 +186,11 @@ if [ ! -z "${BAREMETAL_NETWORK_VLAN}" ] ; then
         sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME}
     fi
 
-    # Remove the baremetal bridge definitions in the VMs
+    # Modify bridge for the VM baremetal nic - we connect it to the remaining
+    # provisioning bridge, so we can test the common bond+vlans case
     DOMLIST=$(sudo virsh list --all | grep ${CLUSTER_NAME} | awk '{print $2}')
     for VM in ${DOMLIST}; do
-        EXT_BR_MAC=$(sudo virsh domiflist ${VM} | grep ${BAREMETAL_NETWORK_NAME} | awk '{print $5}')
-        sudo virsh detach-interface $VM bridge --mac ${EXT_BR_MAC} --config
+        sudo virt-xml --edit all ${VM} --network bridge=${PROVISIONING_NETWORK_NAME}
     done
 
     # Create the provisioning vlan interface
