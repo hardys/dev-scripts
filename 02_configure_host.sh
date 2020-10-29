@@ -169,12 +169,11 @@ fi
 # a vlan interface so tagged traffic can use the same "physical" network
 # as the provisioning traffic (which remains untagged).
 if [ ! -z "${BAREMETAL_NETWORK_VLAN}" ] ; then
-    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.conf /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.conf
-    sudo sed -i "s/${BAREMETAL_NETWORK_NAME}/${BAREMETAL_NETWORK_VLAN_INTERFACE}/" /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.conf
-    sudo sed -i "/^bind-dynamic/d" /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.conf
-    sudo sed -i 's#/var/lib/libvirt/dnsmasq/#/etc/NetworkManager/dnsmasq-shared.d/#' /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.conf
-    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.hostsfile /etc/NetworkManager/dnsmasq-shared.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.hostsfile
-    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.addnhosts /etc/NetworkManager/dnsmasq-shared.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.addnhosts
+    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.conf /etc/NetworkManager/dnsmasq.d/
+    sudo sed -i "/^bind-dynamic/d" /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_NAME}.conf
+    sudo sed -i 's#/var/lib/libvirt/dnsmasq/#/etc/NetworkManager/dnsmasq-shared.d/#' /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_NAME}.conf
+    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.hostsfile /etc/NetworkManager/dnsmasq-shared.d/
+    sudo cp /var/lib/libvirt/dnsmasq/${BAREMETAL_NETWORK_NAME}.addnhosts /etc/NetworkManager/dnsmasq-shared.d/
 
     # Remove the baremetal libvirt network
     sudo virsh net-destroy ${BAREMETAL_NETWORK_NAME}
