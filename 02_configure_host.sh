@@ -180,12 +180,6 @@ if [ ! -z "${BAREMETAL_NETWORK_VLAN}" ] ; then
     sudo virsh net-destroy ${BAREMETAL_NETWORK_NAME}
     sudo virsh net-undefine ${BAREMETAL_NETWORK_NAME}
 
-    # Remove the baremetal bridge
-    sudo ifdown ${BAREMETAL_NETWORK_NAME} || true
-    if [ -e /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME} ] ; then
-        sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME}
-    fi
-
     # Modify bridge for the VM baremetal nic - we connect it to the remaining
     # provisioning bridge, so we can test the common bond+vlans case
     DOMLIST=$(sudo virsh list --all | grep ${CLUSTER_NAME} | awk '{print $2}')
@@ -193,15 +187,15 @@ if [ ! -z "${BAREMETAL_NETWORK_VLAN}" ] ; then
         sudo virt-xml --edit all ${VM} --network bridge=${PROVISIONING_NETWORK_NAME}
     done
 
-    # Create the provisioning vlan interface
-    VLAN_FILE=/etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_VLAN_INTERFACE}
-    if [ ! -e ${VLAN_FILE} ] ; then
-        if [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
-            echo -e "DEVICE=${BAREMETAL_NETWORK_VLAN_INTERFACE}\nVLAN=yes\nNM_CONTROLLED=no\nONBOOT=yes\nIPV6_AUTOCONF=no\nIPV6INIT=yes\nIPV6ADDR=$(nth_ip ${EXTERNAL_SUBNET_V6} 1)" | sudo dd of=${VLAN_FILE}
-        else
-            echo -e "DEVICE=${BAREMETAL_NETWORK_VLAN_INTERFACE}\nVLAN=yes\nNM_CONTROLLED=no\nONBOOT=yes\nIPADDR=$(nth_ip ${EXTERNAL_SUBNET_V4} 1)\nPREFIX=24" | sudo dd of=${VLAN_FILE}
-       fi
-    fi
+    # Create the vlan interface and add it to the baremetal bridge
+    echo -e "DEVICE=${BAREMETAL_NETWORK_VLAN_INTERFACE}\nVLAN=yes\nNM_CONTROLLED=no\nONBOOT=yes\nBRIDGE=${BAREMETAL_NETWORK_NAME}" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_VLAN_INTERFACE}
+
+    # Add an IP to the baremetal bridge, since libvirt doesn't do it in the vlan case
+    if [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
+        echo -e "IPV6_AUTOCONF=no\nIPV6INIT=yes\nIPV6ADDR=${PROVISIONING_HOST_EXTERNAL_IP}" | sudo tee -a /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME}
+    else
+        echo -e "IPADDR=${PROVISIONING_HOST_EXTERNAL_IP}\nPREFIX=${PROVISIONING_HOST_EXTERNAL_NETMASK}" | sudo tee -a /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_NAME}
+   fi
     sudo systemctl restart network
     # Restart NetworkManager to start dnsmasq
     sudo systemctl restart NetworkManager
