@@ -50,7 +50,7 @@ if [ -n "$BAREMETAL_NETWORK_VLAN" ]; then
     sudo ifdown ${BAREMETAL_NETWORK_VLAN_INTERFACE} || true
     sudo ip link delete ${BAREMETAL_NETWORK_VLAN_INTERFACE} || true
     sudo rm -f /etc/sysconfig/network-scripts/ifcfg-${BAREMETAL_NETWORK_VLAN_INTERFACE}
-    sudo rm -f /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.conf /etc/NetworkManager/dnsmasq-shared.d/${BAREMETAL_NETWORK_VLAN_INTERFACE}.*host*
+    sudo rm -f /etc/NetworkManager/dnsmasq.d/${BAREMETAL_NETWORK_NAME}.conf /etc/NetworkManager/dnsmasq-shared.d/${BAREMETAL_NETWORK_NAME}.*host*
     sudo systemctl restart NetworkManager
 fi
 
